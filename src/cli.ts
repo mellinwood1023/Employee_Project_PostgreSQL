@@ -53,7 +53,7 @@ async function showMenu() {
         console.log('Goodbye!');
         return;
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error:', error?.response?.data || error.message);
   }
 
@@ -61,8 +61,8 @@ async function showMenu() {
 }
 
 async function addEmployee() {
-  const rolesRes = await axios.get(`${API_URL}/roles`);
-  const employeesRes = await axios.get(`${API_URL}/employees`);
+  const rolesRes = await axios.get<{ id: number; title: string }[]>(`${API_URL}/roles`);
+  const employeesRes = await axios.get<{ id: number; first_name: string; last_name: string }[]>(`${API_URL}/employees`);
 
   const answers = await inquirer.prompt([
     { name: 'first_name', type: 'input', message: 'Enter first name:' },
