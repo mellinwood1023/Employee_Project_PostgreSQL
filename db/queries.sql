@@ -1,14 +1,11 @@
-INSERT INTO employees (first_name, last_name, email, hire_date, job_title)
-VALUES ('John', 'Doe', 'john.doe@example.com', '2023-01-15', 'Software Engineer');
+INSERT INTO employee (first_name, last_name, role_id, manager_id)
+VALUES ('John', 'Doe', 1, NULL); 
 
+SELECT * FROM employee;
 
-SELECT * FROM employees;
+UPDATE employee
+SET role_id = 2 
+WHERE id = 1; 
 
-
-UPDATE employees
-SET job_title = 'Senior Software Engineer'
-WHERE employee_id = 1;
-
-
-DELETE FROM employees
-WHERE employee_id = 1;
+DELETE FROM employee
+WHERE id = 1;

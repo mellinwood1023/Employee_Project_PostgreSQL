@@ -1,5 +1,8 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express from 'express';
-import { pool, connectToDb } from './connection.js';
+import { pool, connectToDb } from './connection';
 
 await connectToDb();
 
