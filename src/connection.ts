@@ -10,19 +10,19 @@ if (!process.env.DB_USER || !process.env.DB_HOST || !process.env.DB_NAME || !pro
 
 const pool = new Pool({
     user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
     password: process.env.DB_PASSWORD,
+    host: 'localhost',
+    database: process.env.DB_NAME,
     port: Number(process.env.DB_PORT) || 5432,
 });
 
 const connectToDb = async () => {
     try {
-       const client = await pool.connect();
+        await pool.connect();
         console.log('Connected to PostgreSQL database');
-        client.release();
     } catch (error) {
         console.error('Error connecting to PostgreSQL database:', error);
+        process.exit(1);
     }
 };
 
