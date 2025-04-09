@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import pkg from 'pg';
 import inquirer from 'inquirer';
 import { pool, connectToDb as importedConnectToDb } from './connection';
-import axios from 'axios';
+// import axios from 'axios';
 
 dotenv.config();
 
@@ -37,7 +37,6 @@ async function showMenu() {
       choices: [
         'Add a new employee',
         'View all employees',
-        'Get Employee by ID',
         'View all Roles',
         'Add a new role',
         'View all Departments',
@@ -53,23 +52,11 @@ async function showMenu() {
           break;
   
         case 'View all employees':
-          const employees = await axios.get(`${API_URL}/employees`);
-          console.table(employees.data);
+            await viewEmployees();
           break;
-  
-        case 'Get Employee by ID':
-          const { id } = await inquirer.prompt({
-            name: 'id',
-            type: 'input',
-            message: 'Enter employee ID:',
-          });
-          const emp = await axios.get(`${API_URL}/employees/${id}`);
-          console.log('Employee:', emp.data);
-          break;
-  
+
         case 'View all Roles':
-          const roles = await axios.get(`${API_URL}/roles`);
-          console.table(roles.data);
+            await viewRoles();
           break;
         
         case 'Add a new role':
@@ -77,8 +64,7 @@ async function showMenu() {
             break;
 
         case 'View all Departments':
-          const departments = await axios.get(`${API_URL}/departments`);
-          console.table(departments.data);
+          await viewDepartments();
           break;
           
         case 'Add a new department':
@@ -97,56 +83,105 @@ async function showMenu() {
   }
   
   async function addEmployee() {
-    const rolesRes = await axios.get<{ id: number; title: string }[]>(`${API_URL}/roles`);
-    const employeesRes = await axios.get<{ id: number; first_name: string; last_name: string }[]>(`${API_URL}/employees`);
+    const rolesRes = await pool.query('SELECT * FROM role');
+    const employeesRes = await pool.query('SELECT * FROM employee');
   
     const answers = await inquirer.prompt([
-      { name: 'first_name', type: 'input', message: 'Enter first name:' },
-      { name: 'last_name', type: 'input', message: 'Enter last name:' },
-      {
-        name: 'role_id',
-        type: 'list',
-        message: 'Select role:',
-        choices: rolesRes.data.map((role: any) => ({
-          name: role.title,
-          value: role.id,
-        })),
-      },
-      {
-        name: 'manager_id',
-        type: 'list',
-        message: 'Select manager:',
-        choices: [
-          { name: 'None', value: null },
-          ...employeesRes.data.map((emp: any) => ({
-            name: `${emp.first_name} ${emp.last_name}`,
-            value: emp.id,
-          })),
-        ],
-      },
-    ]);
-  
-    const res = await axios.post(`${API_URL}/employees`, answers);
-    console.log('✅ Employee added:', res.data);
+        {
+            type: 'input',
+            name: 'firstName',
+            message: 'Enter first name:',
+        },
+        {
+            type: 'input',
+            name: 'lastName',
+            message: 'Enter last name:',
+        },
+        {
+            type: 'list',
+            name: 'roleId',
+            message: 'Select role:',
+            choices: rolesRes.rows.map(role => ({
+            name: role.title,
+            value: role.id,
+            })),
+        },
+        {
+            type: 'list',
+            name: 'managerId',
+            message: 'Select manager (optional):',
+            choices: employeesRes.rows.map(employee => ({
+            name: `${employee.first_name} ${employee.last_name}`,
+            value: employee.id,
+            })).concat({ name: 'None', value: null }),
+        },
+        ]);
   }
 
-  const addRole = async () => {
-    const departmentsRes = await axios.get(`${API_URL}/departments`);
-    const answers = await inquirer.prompt([
-      { name: 'title', type: 'input', message: 'Enter role title:' },
-    ]);
-
-    const res = await axios.post(`${API_URL}/roles`, answers);
-    console.log('✅ Role added:', res.data);
+  const viewDepartments = async () => {
+    const result = await pool.query('SELECT * FROM department');
+    console.table(result.rows);
   };
-
+  
+  const viewRoles = async () => {
+    const result = await pool.query('SELECT * FROM role');
+    console.table(result.rows);
+  };
+  
+  const viewEmployees = async () => {
+    const result = await pool.query('SELECT * FROM employee');
+    console.table(result.rows);
+  };
+  
   const addDepartment = async () => {
     const answers = await inquirer.prompt([
-      { name: 'name', type: 'input', message: 'Enter department name:' },
+      {
+        type: 'input',
+        name: 'departmentName',
+        message: 'Please enter the department name:',
+      },
     ]);
-
-    const res = await axios.post(`${API_URL}/departments`, answers);
-    console.log('✅ Department added:', res.data);
+  
+    const { departmentName } = answers;
+    await pool.query(
+      `INSERT INTO department (name) VALUES ($1)`,
+      [departmentName]
+    );
+    console.log('Department inserted successfully!');
+  };
+  
+  const addRole = async () => {
+    const departments = await pool.query('SELECT id, name FROM department');
+    const departmentChoices = departments.rows.map(department => ({
+      name: department.name,
+      value: department.id,
+    }));
+  
+    const answers = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'roleTitle',
+        message:'Please enter the role title:',
+      },
+      {
+        type: 'input',
+        name: 'roleSalary',
+        message:'Please enter the role salary:',
+      },
+      {
+        type: 'list',
+        name: 'roleDepartment',
+        message:'Please select the department for this role:',
+        choices: departmentChoices,
+      },
+    ]);
+  
+    const { roleTitle, roleSalary, roleDepartment } = answers;
+    await pool.query(
+      `INSERT INTO role (title, salary, department_id) VALUES ($1, $2, $3)`,
+      [roleTitle, roleSalary, roleDepartment]
+    );
+    console.log('Role inserted successfully!');
   };
 
 importedConnectToDb().then(() => {
