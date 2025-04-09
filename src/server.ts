@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import pkg from 'pg';
 import inquirer from 'inquirer';
-import { pool, connectToDb as importedConnectToDb } from './connection';
+import { pool, connectToDb as importedConnectToDb } from './connection.js';
 // import axios from 'axios';
 
 dotenv.config();
@@ -116,6 +116,11 @@ async function showMenu() {
             })).concat({ name: 'None', value: null }),
         },
         ]);
+        const newEmployee = await pool.query(
+            `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ($1, $2, $3, $4)`,
+            [answers.firstName, answers.lastName, answers.roleId, answers.managerId]
+        );
+        console.log('Employee added successfully!');
   }
 
   const viewDepartments = async () => {
