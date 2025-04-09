@@ -34,6 +34,12 @@ Employee Manager is a PostgreSQL-based project designed to manage employee recor
 - Use SQL queries to interact with the database.
 - Integrate the database with your application using a preferred programming language and PostgreSQL driver.
 
+
+
+https://github.com/user-attachments/assets/bc24dd7f-46c5-44b0-9733-9eba3a7d4293
+
+
+
 ## License
 This project is licensed under the MIT License. See the `LICENSE` file for details.
 
