@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import pkg from 'pg';
 import inquirer from 'inquirer';
-import { pool, connectToDb } from './connection';
+import { pool, connectToDb as importedConnectToDb } from './connection';
 import axios from 'axios';
 
 dotenv.config();
@@ -149,6 +149,6 @@ async function showMenu() {
     console.log('✅ Department added:', res.data);
   };
 
-connectToDb().then(() => {
+importedConnectToDb().then(() => {
   showMenu();
     });
